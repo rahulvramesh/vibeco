@@ -1,0 +1,108 @@
+# Build directories
+build/
+cmake-build-*/
+
+# IDE directories
+.idea/
+.vscode/
+.vs/
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Qt-specific
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+Makefile*
+*build-*
+
+# Keep resource directories
+!resources/icons/
+!resources/images/
+!resources/qml/
+!resources/styles/
+
+# Keep empty directories
+!**/.gitkeep
+
+# Recording files
+*.raw
+recordings/
+*.flac
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+cmake-build-debug/
+.idea/
+
+# Qt Creator
+*.pro.user
+
+# Make sure icons are included in git
+!icons/
+!icons/*.png
+
+# Font files we don't need to track
+*.ttf.meta
+*.otf.meta
+fonts/*.txt
+fonts/*.html
+fonts/license/
+
+# QHotkey
+external/QHotkey/build/
+
+# Objective-C
+*.mm
+
+build/
+.aider.conf.yml
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v3/

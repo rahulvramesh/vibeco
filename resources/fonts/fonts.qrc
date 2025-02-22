@@ -1,0 +1,8 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/fonts">
+        <file>Inter-Regular.ttf</file>
+        <file>Inter-Medium.ttf</file>
+        <file>Inter-Bold.ttf</file>
+    </qresource>
+</RCC> 
