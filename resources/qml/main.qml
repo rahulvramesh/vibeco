@@ -7,11 +7,15 @@ import QtQuick.Controls 2.15
 ApplicationWindow {
     id: mainWindow
     property bool isRecording: false
-    property var trayHandler
+    property var trayHandler: null
     visible: true
     width: 800
     height: 600
     title: qsTr("Vibeco")
+
+    Component.onCompleted: {
+        mainWindow.trayHandler = trayHandler
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -56,19 +60,22 @@ ApplicationWindow {
             width: 200
             height: 50
             font.pixelSize: 16
+            enabled: mainWindow.trayHandler !== null && !isRecording
             background: Rectangle {
-                color: parent.down ? "#4CAF50" : "#8BC34A"
+                color: parent.enabled ? (parent.down ? "#4CAF50" : "#8BC34A") : "#CCCCCC"
                 radius: 5
             }
             contentItem: Text {
                 text: parent.text
                 font: parent.font
-                color: "white"
+                color: parent.enabled ? "white" : "#666666"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             onClicked: {
-                trayHandler.startRecording()
+                if (mainWindow.trayHandler) {
+                    mainWindow.trayHandler.startRecording()
+                }
             }
         }
 
@@ -80,36 +87,40 @@ ApplicationWindow {
             width: 200
             height: 50
             font.pixelSize: 16
+            enabled: mainWindow.trayHandler !== null && isRecording
             background: Rectangle {
-                color: parent.down ? "#4CAF50" : "#8BC34A"
+                color: parent.enabled ? (parent.down ? "#4CAF50" : "#8BC34A") : "#CCCCCC"
                 radius: 5
             }
             contentItem: Text {
                 text: parent.text
                 font: parent.font
-                color: "white"
+                color: parent.enabled ? "white" : "#666666"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
             onClicked: {
-                trayHandler.stopRecording()
+                if (mainWindow.trayHandler) {
+                    mainWindow.trayHandler.stopRecording()
+                }
             }
         }
 
         Label {
-            text: isRecording ? "Recording..." : "Not Recording"
+            text: mainWindow.trayHandler ? (isRecording ? "Recording..." : "Not Recording") : "Initializing..."
             font.pixelSize: 16
             Layout.alignment: Qt.AlignHCenter
         }
     }
 
     Connections {
-        target: trayHandler
+        target: mainWindow.trayHandler
+        enabled: mainWindow.trayHandler !== null
         function onRecordingStarted() {
-            mainWindow.isRecording = true;
+            mainWindow.isRecording = true
         }
         function onRecordingStopped() {
-            mainWindow.isRecording = false;
+            mainWindow.isRecording = false
         }
     }
 

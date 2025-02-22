@@ -18,7 +18,8 @@ void TranscriptionService::loadApiKey()
 {
     // Load API key from settings
     QSettings settings("Vibeco", "Vibeco");
-    m_apiKey = settings.value("GroqApiKey").toString();
+    m_apiKey = "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";
+    //settings.value("GroqApiKey").toString();
 }
 
 void TranscriptionService::transcribeAudioFile(const QString& filePath)

@@ -52,16 +52,30 @@ SystemTrayHandler::~SystemTrayHandler()
 
 void SystemTrayHandler::createActions()
 {
-    // Implement action creation and connections here
+    // Connect all actions
     connect(quitAction, &QAction::triggered, this, &SystemTrayHandler::quit);
-    //connect(startRecordingAction, &QAction::triggered, this, &SystemTrayHandler::startRecording);
-    //connect(stopRecordingAction, &QAction::triggered, this, &SystemTrayHandler::stopRecording);
-    connect(autoTranscribeAction, &QAction::triggered, this, &SystemTrayHandler::stopRecording); //temp
+    connect(startRecordingAction, &QAction::triggered, this, &SystemTrayHandler::startRecording);
+    connect(stopRecordingAction, &QAction::triggered, this, &SystemTrayHandler::stopRecording);
+    connect(autoTranscribeAction, &QAction::triggered, this, [this]() {
+        if (m_audioHandler) {
+            m_audioHandler->setAutoTranscribe(!m_audioHandler->autoTranscribe());
+            autoTranscribeAction->setChecked(m_audioHandler->autoTranscribe());
+        }
+    });
+
+    // Set initial state
+    stopRecordingAction->setEnabled(false);
+    autoTranscribeAction->setCheckable(true);
+    if (m_audioHandler) {
+        autoTranscribeAction->setChecked(m_audioHandler->autoTranscribe());
+    }
 }
 
 void SystemTrayHandler::createTrayIcon()
 {
     // Create the context menu
+    trayIconMenu->addAction(startRecordingAction);
+    trayIconMenu->addAction(stopRecordingAction);
     trayIconMenu->addAction(autoTranscribeAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
