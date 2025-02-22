@@ -7,6 +7,7 @@ import QtQuick.Controls 2.15
 ApplicationWindow {
     id: mainWindow
     property bool isRecording: false
+    property var systemTrayHandler
     visible: true
     width: 800
     height: 600
@@ -26,11 +27,8 @@ ApplicationWindow {
 
         Button {
             text: "Test Notification"
-            anchors {
-                bottom: parent.bottom
-                horizontalCenter: parent.horizontalCenter
-                margins: 20
-            }
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+            Layout.bottomMargin: 20
             width: 200
             height: 50
             font.pixelSize: 16
@@ -59,10 +57,10 @@ ApplicationWindow {
 
     Connections {
         target: systemTrayHandler
-        onRecordingStarted: {
+        function onRecordingStarted() {
             mainWindow.isRecording = true;
         }
-        onRecordingStopped: {
+        function onRecordingStopped() {
             mainWindow.isRecording = false;
         }
     }
