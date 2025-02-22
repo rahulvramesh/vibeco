@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     
     QQmlApplicationEngine engine;
-    
-    SystemTrayHandler trayHandler;
+
+    SystemTrayHandler* trayHandler = new SystemTrayHandler(&app);
 
     // Add debug output
     qDebug() << "Current working directory:" << QDir::currentPath();
@@ -28,11 +28,12 @@ int main(int argc, char *argv[])
     
     // Register Style singleton
     qmlRegisterSingletonType(QUrl("qrc:/Style.qml"), "com.vibeco.style", 1, 0, "Style");
-    
+    engine.rootContext()->setContextProperty("trayHandler", trayHandler);
+
     // Create and register ShortcutManager
-    ShortcutManager* shortcutManager = new ShortcutManager(&trayHandler, &app);
+    ShortcutManager* shortcutManager = new ShortcutManager(trayHandler, &app);
     engine.rootContext()->setContextProperty("shortcutManager", shortcutManager);
-    
+
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {
