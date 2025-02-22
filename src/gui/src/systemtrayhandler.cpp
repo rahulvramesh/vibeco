@@ -1,4 +1,4 @@
-#include "SystemTrayHandler.h"
+#include "systemtrayhandler.h"
 #include <QApplication>
 #include <QDebug>
 #include <QFile>
