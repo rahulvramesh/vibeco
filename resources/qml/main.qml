@@ -7,7 +7,7 @@ import QtQuick.Controls 2.15
 ApplicationWindow {
     id: mainWindow
     property bool isRecording: false
-    property var systemTrayHandler
+    property var trayHandler
     visible: true
     width: 800
     height: 600
@@ -56,7 +56,7 @@ ApplicationWindow {
     }
 
     Connections {
-        target: systemTrayHandler
+        target: trayHandler
         function onRecordingStarted() {
             mainWindow.isRecording = true;
         }
