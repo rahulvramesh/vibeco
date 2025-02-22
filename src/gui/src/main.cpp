@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QDir>
-#include "SystemTrayHandler.h"
+#include "systemtrayhandler.h"
 #include <QQmlEngine>
 #include <QQmlContext>
 #include "ShortcutManager.h"

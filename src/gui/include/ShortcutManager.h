@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QHotkey>
 #include <QSystemTrayIcon>
-#include "SystemTrayHandler.h"
+#include "systemtrayhandler.h"
 
 class ShortcutManager : public QObject
 {

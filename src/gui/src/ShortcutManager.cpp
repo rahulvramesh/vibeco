@@ -1,5 +1,5 @@
 #include "ShortcutManager.h"
-#include "SystemTrayHandler.h"
+#include "systemtrayhandler.h"
 #include <QDebug>
 
 #ifdef Q_OS_MAC
