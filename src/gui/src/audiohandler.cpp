@@ -13,8 +13,9 @@ AudioHandler::AudioHandler(QObject *parent)
     , m_transcriptionService(new TranscriptionService(this))
     , m_autoTranscribe(false)
 {
-    connect(m_transcriptionService, &TranscriptionService::transcriptionComplete,
-            this, &AudioHandler::transcriptionReceived);
+    connect(m_transcriptionService, 
+           static_cast<void (TranscriptionService::*)(const QString&)>(&TranscriptionService::transcriptionComplete),
+           this, &AudioHandler::transcriptionReceived);
     connect(m_transcriptionService, &TranscriptionService::transcriptionError,
             [this](const QString& error) {
                 qDebug() << "Transcription error:" << error;

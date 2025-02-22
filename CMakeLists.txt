@@ -48,6 +48,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/audiohandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/transcriptionservice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/transcriptionservice.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/config.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/settingsdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/systemtrayhandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/ShortcutManager.h
 )
@@ -74,6 +76,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/macOSShortcutChecker.mm
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/audiohandler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/transcriptionservice.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/config.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/settingsdialog.cpp
 )
 
 set(PROJECT_HEADERS
@@ -81,6 +85,8 @@ set(PROJECT_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/ShortcutManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/audiohandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/transcriptionservice.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/config.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/settingsdialog.h
 )
 
 add_executable(vibeco 

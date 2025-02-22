@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include "transcriptionservice.h"
 
 class ShortcutManager;
 class AudioHandler;
@@ -18,12 +19,16 @@ public:
 
     QSystemTrayIcon* trayIcon() const { return m_trayIcon; }
 
+public slots:
+    void showTranscriptionComplete(const QString& text);
+    void showTranscriptionComplete(const TranscriptionResult& result);
+    void showSettings();
+
 private slots:
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
     void quit();
     void startRecording();
     void stopRecording();
-    void handleTranscription(const QString& text);
 
 signals:
     void recordingStarted();

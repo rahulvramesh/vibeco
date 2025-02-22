@@ -4,6 +4,8 @@
 #include <QFile>
 #include "ShortcutManager.h"
 #include "audiohandler.h"
+#include "settingsdialog.h"
+#include <QMessageBox>
 
 SystemTrayHandler::SystemTrayHandler(QObject* parent)
     : QObject(parent),
@@ -27,7 +29,7 @@ SystemTrayHandler::SystemTrayHandler(QObject* parent)
     m_audioHandler->initialize();
 
     connect(m_audioHandler, &AudioHandler::transcriptionReceived,
-            this, &SystemTrayHandler::handleTranscription);
+            this, static_cast<void (SystemTrayHandler::*)(const QString&)>(&SystemTrayHandler::showTranscriptionComplete));
 
     connect(this, &SystemTrayHandler::recordingStarted, this, [this](){
         startRecordingAction->setEnabled(false);
@@ -77,6 +79,13 @@ void SystemTrayHandler::createTrayIcon()
     trayIconMenu->addAction(startRecordingAction);
     trayIconMenu->addAction(stopRecordingAction);
     trayIconMenu->addAction(autoTranscribeAction);
+    trayIconMenu->addSeparator();
+    
+    // Add settings action
+    QAction* settingsAction = new QAction(tr("Settings"), this);
+    connect(settingsAction, &QAction::triggered, this, &SystemTrayHandler::showSettings);
+    trayIconMenu->addAction(settingsAction);
+    
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
 
@@ -144,7 +153,43 @@ void SystemTrayHandler::quit()
     QApplication::quit();
 }
 
-void SystemTrayHandler::handleTranscription(const QString& text)
+void SystemTrayHandler::showTranscriptionComplete(const QString& text)
 {
     m_trayIcon->showMessage(tr("Transcription Complete"), text);
+}
+
+void SystemTrayHandler::showTranscriptionComplete(const TranscriptionResult& result)
+{
+    // Create a detailed message
+    QString details = tr("Transcription Details:\n\n");
+    details += tr("Text: %1\n\n").arg(result.text);
+    details += tr("Language: %1\n").arg(result.language);
+    details += tr("Duration: %1 seconds\n").arg(result.duration);
+    details += tr("Task: %1\n").arg(result.task);
+    details += tr("Request ID: %1\n\n").arg(result.requestId);
+    
+    details += tr("Segment Details:\n");
+    details += tr("- Time: %1s to %2s\n")
+        .arg(result.segment.start)
+        .arg(result.segment.end);
+    details += tr("- Avg Log Probability: %1\n")
+        .arg(result.segment.avgLogProb);
+    details += tr("- No Speech Probability: %1\n")
+        .arg(result.segment.noSpeechProb);
+    details += tr("- Temperature: %1\n")
+        .arg(result.segment.temperature);
+    details += tr("- Compression Ratio: %1")
+        .arg(result.segment.compressionRatio);
+
+    // Show brief notification in system tray
+    m_trayIcon->showMessage(tr("Transcription Complete"), result.text);
+
+    // Show detailed results in a message box
+    QMessageBox::information(nullptr, tr("Transcription Details"), details);
+}
+
+void SystemTrayHandler::showSettings()
+{
+    SettingsDialog dialog;
+    dialog.exec();
 } 
