@@ -4,9 +4,7 @@
 #include <QObject>
 #include <QHotkey>
 #include <QSystemTrayIcon>
-
-// Forward declaration
-class SystemTrayHandler;
+#include "SystemTrayHandler.h"
 
 class ShortcutManager : public QObject
 {
