@@ -25,9 +25,19 @@ SystemTrayHandler::SystemTrayHandler(QObject* parent)
 
     m_audioHandler = new AudioHandler(this);
     m_audioHandler->initialize();
-    
+
     connect(m_audioHandler, &AudioHandler::transcriptionReceived,
             this, &SystemTrayHandler::handleTranscription);
+
+    connect(this, &SystemTrayHandler::recordingStarted, this, [this](){
+        startRecordingAction->setEnabled(false);
+        stopRecordingAction->setEnabled(true);
+    });
+
+    connect(this, &SystemTrayHandler::recordingStopped, this, [this](){
+        startRecordingAction->setEnabled(true);
+        stopRecordingAction->setEnabled(false);
+    });
 }
 
 SystemTrayHandler::~SystemTrayHandler()
@@ -43,13 +53,15 @@ SystemTrayHandler::~SystemTrayHandler()
 void SystemTrayHandler::createActions()
 {
     // Implement action creation and connections here
+    connect(quitAction, &QAction::triggered, this, &SystemTrayHandler::quit);
+    //connect(startRecordingAction, &QAction::triggered, this, &SystemTrayHandler::startRecording);
+    //connect(stopRecordingAction, &QAction::triggered, this, &SystemTrayHandler::stopRecording);
+    connect(autoTranscribeAction, &QAction::triggered, this, &SystemTrayHandler::stopRecording); //temp
 }
 
 void SystemTrayHandler::createTrayIcon()
 {
     // Create the context menu
-    trayIconMenu->addAction(startRecordingAction);
-    trayIconMenu->addAction(stopRecordingAction);
     trayIconMenu->addAction(autoTranscribeAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);

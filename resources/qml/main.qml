@@ -48,6 +48,54 @@ ApplicationWindow {
             }
         }
 
+        Button {
+            id: startRecordingButton
+            text: "Start Recording"
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+            Layout.bottomMargin: 20
+            width: 200
+            height: 50
+            font.pixelSize: 16
+            background: Rectangle {
+                color: parent.down ? "#4CAF50" : "#8BC34A"
+                radius: 5
+            }
+            contentItem: Text {
+                text: parent.text
+                font: parent.font
+                color: "white"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            onClicked: {
+                trayHandler.startRecording()
+            }
+        }
+
+        Button {
+            id: stopRecordingButton
+            text: "Stop Recording"
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+            Layout.bottomMargin: 20
+            width: 200
+            height: 50
+            font.pixelSize: 16
+            background: Rectangle {
+                color: parent.down ? "#4CAF50" : "#8BC34A"
+                radius: 5
+            }
+            contentItem: Text {
+                text: parent.text
+                font: parent.font
+                color: "white"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+            onClicked: {
+                trayHandler.stopRecording()
+            }
+        }
+
         Label {
             text: isRecording ? "Recording..." : "Not Recording"
             font.pixelSize: 16
