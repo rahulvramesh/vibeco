@@ -11,15 +11,14 @@ DictationWidget::DictationWidget(QWidget *parent)
     , m_textLabel(new QLabel("Record", this))
     , m_isHovered(false)
     , m_animation(new QPropertyAnimation(this, "height"))
+    , m_baseY(0) // New member to store the base y-position
 {
-    // Set individual attributes (corrected from setAttributes)
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_ShowWithoutActivating);
     setAttribute(Qt::WA_MacAlwaysShowToolWindow);
     setAttribute(Qt::WA_NoSystemBackground);
     setMouseTracking(true);
 
-    // Simplified layout
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(0);
@@ -27,28 +26,32 @@ DictationWidget::DictationWidget(QWidget *parent)
     m_textLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(m_textLabel);
 
-    // Set initial size
     setFixedWidth(100);
     setFixedHeight(5);
 
-    // Configure animation
     m_animation->setDuration(150);
     m_animation->setEasingCurve(QEasingCurve::OutCubic);
 
-    // Initially hide the label
+    // Connect valueChanged signal to adjust position
+    connect(m_animation, &QPropertyAnimation::valueChanged, this, [this](const QVariant &value) {
+        int newHeight = value.toInt();
+        setGeometry(x(), m_baseY - newHeight + 5, width(), newHeight);
+    });
+
     m_textLabel->setVisible(false);
 }
 
 DictationWidget::~DictationWidget() {
-    // No manual cleanup needed; Qt handles child objects
+    // No manual cleanup needed
 }
 
 void DictationWidget::showAtBottom() {
     if (const QScreen *screen = QApplication::primaryScreen()) {
         const QRect screenGeometry = screen->geometry();
         const int x = (screenGeometry.width() - width()) / 2;
-        const int y = screenGeometry.height() - height() - 30;
-        move(x, y);
+        const int y = screenGeometry.height() - 30; // Fixed bottom offset
+        m_baseY = y; // Store the base y-position (bottom edge when height = 5)
+        move(x, y - 5); // Initial position for height = 5
     }
     show();
 }
@@ -74,7 +77,7 @@ void DictationWidget::enterEvent(QEnterEvent *event) {
         m_isHovered = true;
         m_animation->stop();
         m_animation->setStartValue(height());
-        m_animation->setEndValue(35); // Hover height set to 35
+        m_animation->setEndValue(35); // Hover height
         m_animation->start();
 
         QTimer::singleShot(50, this, [this]() {

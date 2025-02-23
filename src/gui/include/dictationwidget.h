@@ -32,6 +32,7 @@ private:
     QString m_dots;
     bool m_isHovered;
     QPropertyAnimation *m_animation;
+    int m_baseY;
 
 signals:
     void clicked();
