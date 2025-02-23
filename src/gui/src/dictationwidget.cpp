@@ -7,173 +7,93 @@
 #include <QPropertyAnimation>
 
 DictationWidget::DictationWidget(QWidget *parent)
-    : QWidget(parent, Qt::Tool | Qt::FramelessWindowHint |
-              Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus)
+    : QWidget(parent, Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus)
     , m_textLabel(new QLabel("Record", this))
-    , m_dotsLabel(new QLabel(this))
-    , m_dotsTimer(new QTimer(this))
-    , m_dotCount(0)
-    , m_dots("")
     , m_isHovered(false)
     , m_animation(new QPropertyAnimation(this, "height"))
 {
-    // These attributes are set to customize the behavior of the widget
-    // WA_TranslucentBackground makes the widget background transparent
-    // WA_ShowWithoutActivating allows the widget to be shown without activating it
-    // WA_MacAlwaysShowToolWindow makes the widget always appear on top of other windows
-    // WA_NoSystemBackground prevents the widget from using the system background
+    // Set individual attributes (corrected from setAttributes)
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_ShowWithoutActivating);
     setAttribute(Qt::WA_MacAlwaysShowToolWindow);
     setAttribute(Qt::WA_NoSystemBackground);
-    setMouseTracking(true); // Enable mouse tracking
+    setMouseTracking(true);
 
-    // Install event filter on the QApplication
-    qApp->installEventFilter(this);
-
+    // Simplified layout
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(0);
-
-    // Style the text label
     m_textLabel->setStyleSheet("QLabel { color: white; font-size: 10px; }");
     m_textLabel->setAlignment(Qt::AlignCenter);
-
-    // Style the dots label
-    // m_dotsLabel->setStyleSheet("QLabel { color: white; font-size: 16px; }");
-    // m_dotsLabel->setAlignment(Qt::AlignCenter);
-
     layout->addWidget(m_textLabel);
-    // layout->addWidget(m_dotsLabel);
 
-    // Set up the dots animation timer
-    // connect(m_dotsTimer, &QTimer::timeout, this, &DictationWidget::updateDots);
-    // m_dotsTimer->start(500); // Update every 500ms
-
-    // Set fixed width and initial height
+    // Set initial size
     setFixedWidth(100);
     setFixedHeight(5);
-    
-    // Configure the animation
+
+    // Configure animation
     m_animation->setDuration(150);
     m_animation->setEasingCurve(QEasingCurve::OutCubic);
-    
-    // Connect animation finished signal to update widget state
-    connect(m_animation, &QPropertyAnimation::finished, this, [this]() {
-        if (!m_isHovered) {
-            setFixedHeight(5);
-        }
-    });
-    
-    // Initially hide the labels
+
+    // Initially hide the label
     m_textLabel->setVisible(false);
-    m_dotsLabel->setVisible(false);
-}
-
-bool DictationWidget::eventFilter(QObject *obj, QEvent *event) {
-    if (event->type() == QEvent::MouseMove) {
-        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-        QPointF globalPos = mouseEvent->globalPosition();
-        QRect widgetGeometry = geometry();
-
-        if (widgetGeometry.contains(globalPos.toPoint())) {
-            if (!m_isHovered) {
-                QEnterEvent enterEvent(mouseEvent->position().toPoint(), mouseEvent->globalPosition().toPoint());
-                QApplication::sendEvent(this, &enterEvent);
-            }
-        } else {
-            if (m_isHovered) {
-                QEvent leaveEvent(QEvent::Leave);
-                QApplication::sendEvent(this, &leaveEvent);
-            }
-        }
-    }
-    return QWidget::eventFilter(obj, event);
 }
 
 DictationWidget::~DictationWidget() {
-    m_dotsTimer->stop();
+    // No manual cleanup needed; Qt handles child objects
 }
 
 void DictationWidget::showAtBottom() {
     if (const QScreen *screen = QApplication::primaryScreen()) {
         const QRect screenGeometry = screen->geometry();
         const int x = (screenGeometry.width() - width()) / 2;
-        const int y = screenGeometry.height() - height() - 30; // 50 pixels from bottom
+        const int y = screenGeometry.height() - height() - 30;
         move(x, y);
     }
     show();
 }
 
-void DictationWidget::updateDots()
-{
-    m_dotCount = (m_dotCount + 1) % 4;
-    m_dots = QString(".").repeated(m_dotCount);
-    m_dotsLabel->setText(m_dots);
-}
-
-void DictationWidget::paintEvent(QPaintEvent *event)
-{
+void DictationWidget::paintEvent(QPaintEvent *event) {
     Q_UNUSED(event);
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    
-    // Draw rounded rectangle background with semi-transparency
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(0, 0, 0, 180));
     painter.drawRoundedRect(rect(), 10, 10);
 }
 
-void DictationWidget::mousePressEvent(QMouseEvent *event)
-{
+void DictationWidget::mousePressEvent(QMouseEvent *event) {
     if (event->button() == Qt::LeftButton && m_isHovered) {
         emit clicked();
     }
     QWidget::mousePressEvent(event);
 }
 
-void DictationWidget::enterEvent(QEnterEvent *event)
-{
+void DictationWidget::enterEvent(QEnterEvent *event) {
     if (!m_isHovered) {
         m_isHovered = true;
-        
-        // Stop any ongoing animation
         m_animation->stop();
-        
-        // Set up and start the expand animation
-        m_animation->setStartValue(10);
-        m_animation->setEndValue(80);
+        m_animation->setStartValue(height());
+        m_animation->setEndValue(35); // Hover height set to 35
         m_animation->start();
-        
-        // Show labels after a brief delay to match the animation
+
         QTimer::singleShot(50, this, [this]() {
-            if (m_isHovered) {  // Only show if still hovering
+            if (m_isHovered) {
                 m_textLabel->setVisible(true);
-                m_dotsLabel->setVisible(true);
             }
         });
     }
-    
     QWidget::enterEvent(event);
 }
 
-void DictationWidget::leaveEvent(QEvent *event)
-{
+void DictationWidget::leaveEvent(QEvent *event) {
     if (m_isHovered) {
         m_isHovered = false;
-        
-        // Stop any ongoing animation
         m_animation->stop();
-        
-        // Hide labels immediately
         m_textLabel->setVisible(false);
-        m_dotsLabel->setVisible(false);
-        
-        // Set up and start the collapse animation
         m_animation->setStartValue(height());
-        m_animation->setEndValue(10);
+        m_animation->setEndValue(5);
         m_animation->start();
     }
-    
     QWidget::leaveEvent(event);
 }
