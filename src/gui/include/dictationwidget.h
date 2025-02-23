@@ -9,7 +9,7 @@
 class DictationWidget : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(int minimumHeight READ minimumHeight WRITE setMinimumHeight)
+    Q_PROPERTY(int height READ height WRITE setFixedHeight)
 
 public:
     explicit DictationWidget(QWidget *parent = nullptr);
