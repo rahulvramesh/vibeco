@@ -70,16 +70,15 @@ DictationWidget::DictationWidget(QWidget *parent)
     m_dotsLabel->setVisible(false);
 }
 
-bool DictationWidget::eventFilter(QObject *obj, QEvent *event)
-{
+bool DictationWidget::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::MouseMove) {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-        QPoint globalPos = mouseEvent->globalPos();
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        QPointF globalPos = mouseEvent->globalPosition();
         QRect widgetGeometry = geometry();
 
-        if (widgetGeometry.contains(globalPos)) {
+        if (widgetGeometry.contains(globalPos.toPoint())) {
             if (!m_isHovered) {
-                QEnterEvent enterEvent(mouseEvent->pos(), mouseEvent->windowPos(), mouseEvent->globalPos());
+                QEnterEvent enterEvent(mouseEvent->position().toPoint(), mouseEvent->globalPosition().toPoint());
                 QApplication::sendEvent(this, &enterEvent);
             }
         } else {
@@ -92,13 +91,11 @@ bool DictationWidget::eventFilter(QObject *obj, QEvent *event)
     return QWidget::eventFilter(obj, event);
 }
 
-DictationWidget::~DictationWidget()
-{
+DictationWidget::~DictationWidget() {
     m_dotsTimer->stop();
 }
 
-void DictationWidget::showAtBottom()
-{
+void DictationWidget::showAtBottom() {
     if (const QScreen *screen = QApplication::primaryScreen()) {
         const QRect screenGeometry = screen->geometry();
         const int x = (screenGeometry.width() - width()) / 2;
