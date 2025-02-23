@@ -28,6 +28,9 @@ DictationWidget::DictationWidget(QWidget *parent)
     setAttribute(Qt::WA_NoSystemBackground);
     setMouseTracking(true); // Enable mouse tracking
 
+    // Install event filter on the QApplication
+    qApp->installEventFilter(this);
+
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(0);
@@ -65,6 +68,28 @@ DictationWidget::DictationWidget(QWidget *parent)
     // Initially hide the labels
     m_textLabel->setVisible(false);
     m_dotsLabel->setVisible(false);
+}
+
+bool DictationWidget::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::MouseMove) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        QPoint globalPos = mouseEvent->globalPos();
+        QRect widgetGeometry = geometry();
+
+        if (widgetGeometry.contains(globalPos)) {
+            if (!m_isHovered) {
+                QEnterEvent enterEvent(mouseEvent->pos(), mouseEvent->windowPos(), mouseEvent->globalPos());
+                QApplication::sendEvent(this, &enterEvent);
+            }
+        } else {
+            if (m_isHovered) {
+                QEvent leaveEvent(QEvent::Leave);
+                QApplication::sendEvent(this, &leaveEvent);
+            }
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }
 
 DictationWidget::~DictationWidget()
