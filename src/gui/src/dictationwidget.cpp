@@ -17,6 +17,11 @@ DictationWidget::DictationWidget(QWidget *parent)
     , m_isHovered(false)
     , m_animation(new QPropertyAnimation(this, "height"))
 {
+    // These attributes are set to customize the behavior of the widget
+    // WA_TranslucentBackground makes the widget background transparent
+    // WA_ShowWithoutActivating allows the widget to be shown without activating it
+    // WA_MacAlwaysShowToolWindow makes the widget always appear on top of other windows
+    // WA_NoSystemBackground prevents the widget from using the system background
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_ShowWithoutActivating);
     setAttribute(Qt::WA_MacAlwaysShowToolWindow);
