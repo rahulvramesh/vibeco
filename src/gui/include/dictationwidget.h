@@ -17,6 +17,7 @@ public:
 
     void showAtBottom();
     void updateDots();
+    void setRecordingStste(bool recording);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
