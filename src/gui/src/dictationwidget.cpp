@@ -7,7 +7,8 @@
 #include <QPropertyAnimation>
 
 DictationWidget::DictationWidget(QWidget *parent)
-    : QWidget(parent, Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus)
+    : QWidget(parent, Qt::Tool | Qt::FramelessWindowHint |
+              Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus)
     , m_textLabel(new QLabel("Record", this))
     , m_dotsLabel(new QLabel(this))
     , m_dotsTimer(new QTimer(this))
@@ -20,26 +21,27 @@ DictationWidget::DictationWidget(QWidget *parent)
     setAttribute(Qt::WA_ShowWithoutActivating);
     setAttribute(Qt::WA_MacAlwaysShowToolWindow);
     setAttribute(Qt::WA_NoSystemBackground);
-    
+    setMouseTracking(true); // Enable mouse tracking
+
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(0);
-    
+
     // Style the text label
-    m_textLabel->setStyleSheet("QLabel { color: white; font-size: 16px; }");
+    m_textLabel->setStyleSheet("QLabel { color: white; font-size: 10px; }");
     m_textLabel->setAlignment(Qt::AlignCenter);
-    
+
     // Style the dots label
-    m_dotsLabel->setStyleSheet("QLabel { color: white; font-size: 16px; }");
-    m_dotsLabel->setAlignment(Qt::AlignCenter);
-    
+    // m_dotsLabel->setStyleSheet("QLabel { color: white; font-size: 16px; }");
+    // m_dotsLabel->setAlignment(Qt::AlignCenter);
+
     layout->addWidget(m_textLabel);
-    layout->addWidget(m_dotsLabel);
-    
+    // layout->addWidget(m_dotsLabel);
+
     // Set up the dots animation timer
     // connect(m_dotsTimer, &QTimer::timeout, this, &DictationWidget::updateDots);
     // m_dotsTimer->start(500); // Update every 500ms
-    
+
     // Set fixed width and initial height
     setFixedWidth(100);
     setFixedHeight(5);
@@ -70,7 +72,7 @@ void DictationWidget::showAtBottom()
     if (const QScreen *screen = QApplication::primaryScreen()) {
         const QRect screenGeometry = screen->geometry();
         const int x = (screenGeometry.width() - width()) / 2;
-        const int y = screenGeometry.height() - height() - 10; // 50 pixels from bottom
+        const int y = screenGeometry.height() - height() - 30; // 50 pixels from bottom
         move(x, y);
     }
     show();
@@ -147,4 +149,4 @@ void DictationWidget::leaveEvent(QEvent *event)
     }
     
     QWidget::leaveEvent(event);
-} 
+}
