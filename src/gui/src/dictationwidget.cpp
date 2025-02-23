@@ -4,6 +4,7 @@
 #include <QScreen>
 #include <QApplication>
 #include <QMouseEvent>
+#include <QPropertyAnimation>
 
 DictationWidget::DictationWidget(QWidget *parent)
     : QWidget(parent)
@@ -12,6 +13,8 @@ DictationWidget::DictationWidget(QWidget *parent)
     , m_dotsTimer(new QTimer(this))
     , m_dotCount(0)
     , m_dots("")
+    , m_isHovered(false)
+    , m_animation(new QPropertyAnimation(this, "minimumHeight", this))
 {
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput | Qt::WindowDoesNotAcceptFocus);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -38,8 +41,18 @@ DictationWidget::DictationWidget(QWidget *parent)
     connect(m_dotsTimer, &QTimer::timeout, this, &DictationWidget::updateDots);
     m_dotsTimer->start(500); // Update every 500ms
     
-    // Set a fixed size for the widget
-    setFixedSize(200, 80);
+    // Set fixed width but allow height to be animated
+    setFixedWidth(200);
+    setMinimumHeight(10);
+    setMaximumHeight(80);
+    
+    // Configure the animation
+    m_animation->setDuration(200);
+    m_animation->setEasingCurve(QEasingCurve::OutCubic);
+    
+    // Initially hide the labels
+    m_textLabel->setVisible(false);
+    m_dotsLabel->setVisible(false);
 }
 
 DictationWidget::~DictationWidget()
@@ -52,7 +65,7 @@ void DictationWidget::showAtBottom()
     if (const QScreen *screen = QApplication::primaryScreen()) {
         const QRect screenGeometry = screen->geometry();
         const int x = (screenGeometry.width() - width()) / 2;
-        const int y = screenGeometry.height() - height() - 50; // 50 pixels from bottom
+        const int y = screenGeometry.height() - 10 - 50; // 50 pixels from bottom
         move(x, y);
     }
     show();
@@ -79,8 +92,38 @@ void DictationWidget::paintEvent(QPaintEvent *event)
 
 void DictationWidget::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && m_isHovered) {
         emit clicked();
     }
     QWidget::mousePressEvent(event);
+}
+
+void DictationWidget::enterEvent(QEnterEvent *event)
+{
+    m_isHovered = true;
+    m_animation->setStartValue(minimumHeight());
+    m_animation->setEndValue(80);
+    m_animation->start();
+    
+    // Show labels after a brief delay to match the animation
+    QTimer::singleShot(100, this, [this]() {
+        m_textLabel->setVisible(true);
+        m_dotsLabel->setVisible(true);
+    });
+    
+    QWidget::enterEvent(event);
+}
+
+void DictationWidget::leaveEvent(QEvent *event)
+{
+    m_isHovered = false;
+    m_animation->setStartValue(minimumHeight());
+    m_animation->setEndValue(10);
+    m_animation->start();
+    
+    // Hide labels immediately
+    m_textLabel->setVisible(false);
+    m_dotsLabel->setVisible(false);
+    
+    QWidget::leaveEvent(event);
 } 
