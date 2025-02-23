@@ -39,13 +39,13 @@ SystemTrayHandler::SystemTrayHandler(QObject* parent)
     connect(this, &SystemTrayHandler::recordingStarted, this, [this](){
         startRecordingAction->setEnabled(false);
         stopRecordingAction->setEnabled(true);
-        hideDictationWidget();
+        //hideDictationWidget();
     });
 
     connect(this, &SystemTrayHandler::recordingStopped, this, [this](){
         startRecordingAction->setEnabled(true);
         stopRecordingAction->setEnabled(false);
-        showDictationWidget();
+        //showDictationWidget();
     });
 
     // Show the dictation widget initially
