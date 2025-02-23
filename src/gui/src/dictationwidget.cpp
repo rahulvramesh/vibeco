@@ -8,7 +8,7 @@
 
 DictationWidget::DictationWidget(QWidget *parent)
     : QWidget(parent, Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus)
-    , m_textLabel(new QLabel("Click to begin dictation", this))
+    , m_textLabel(new QLabel("Record", this))
     , m_dotsLabel(new QLabel(this))
     , m_dotsTimer(new QTimer(this))
     , m_dotCount(0)
@@ -22,7 +22,7 @@ DictationWidget::DictationWidget(QWidget *parent)
     setAttribute(Qt::WA_NoSystemBackground);
     
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(20, 10, 20, 10);
+    layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(0);
     
     // Style the text label
@@ -37,12 +37,12 @@ DictationWidget::DictationWidget(QWidget *parent)
     layout->addWidget(m_dotsLabel);
     
     // Set up the dots animation timer
-    connect(m_dotsTimer, &QTimer::timeout, this, &DictationWidget::updateDots);
-    m_dotsTimer->start(500); // Update every 500ms
+    // connect(m_dotsTimer, &QTimer::timeout, this, &DictationWidget::updateDots);
+    // m_dotsTimer->start(500); // Update every 500ms
     
     // Set fixed width and initial height
-    setFixedWidth(200);
-    setFixedHeight(10);
+    setFixedWidth(100);
+    setFixedHeight(5);
     
     // Configure the animation
     m_animation->setDuration(150);
@@ -51,7 +51,7 @@ DictationWidget::DictationWidget(QWidget *parent)
     // Connect animation finished signal to update widget state
     connect(m_animation, &QPropertyAnimation::finished, this, [this]() {
         if (!m_isHovered) {
-            setFixedHeight(10);
+            setFixedHeight(5);
         }
     });
     
@@ -70,7 +70,7 @@ void DictationWidget::showAtBottom()
     if (const QScreen *screen = QApplication::primaryScreen()) {
         const QRect screenGeometry = screen->geometry();
         const int x = (screenGeometry.width() - width()) / 2;
-        const int y = screenGeometry.height() - height() - 50; // 50 pixels from bottom
+        const int y = screenGeometry.height() - height() - 10; // 50 pixels from bottom
         move(x, y);
     }
     show();
