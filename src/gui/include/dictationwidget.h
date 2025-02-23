@@ -4,10 +4,12 @@
 #include <QWidget>
 #include <QLabel>
 #include <QTimer>
+#include <QPropertyAnimation>
 
 class DictationWidget : public QWidget
 {
     Q_OBJECT
+    Q_PROPERTY(int minimumHeight READ minimumHeight WRITE setMinimumHeight)
 
 public:
     explicit DictationWidget(QWidget *parent = nullptr);

@@ -7,16 +7,15 @@
 #include <QPropertyAnimation>
 
 DictationWidget::DictationWidget(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent, Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus)
     , m_textLabel(new QLabel("Click to begin dictation", this))
     , m_dotsLabel(new QLabel(this))
     , m_dotsTimer(new QTimer(this))
     , m_dotCount(0)
     , m_dots("")
     , m_isHovered(false)
-    , m_animation(new QPropertyAnimation(this, "minimumHeight", this))
+    , m_animation(new QPropertyAnimation(this, "minimumHeight"))
 {
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowTransparentForInput | Qt::WindowDoesNotAcceptFocus);
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_ShowWithoutActivating);
     setAttribute(Qt::WA_MacAlwaysShowToolWindow);
@@ -65,7 +64,7 @@ void DictationWidget::showAtBottom()
     if (const QScreen *screen = QApplication::primaryScreen()) {
         const QRect screenGeometry = screen->geometry();
         const int x = (screenGeometry.width() - width()) / 2;
-        const int y = screenGeometry.height() - 10 - 50; // 50 pixels from bottom
+        const int y = screenGeometry.height() - height() - 50; // 50 pixels from bottom
         move(x, y);
     }
     show();
