@@ -4,5 +4,6 @@
         <file>main.qml</file>
         <file>Style.qml</file>
         <file>qtquickcontrols2.conf</file>
+        <file>components/BottomControlBar.qml</file>
     </qresource>
 </RCC> 

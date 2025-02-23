@@ -3,6 +3,7 @@ import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Controls 2.15
+import "components"
 
 ApplicationWindow {
     id: mainWindow
@@ -12,6 +13,7 @@ ApplicationWindow {
     width: 800
     height: 600
     title: qsTr("Vibeco")
+    color: "#1A1A1A"  // Dark background
 
     Component.onCompleted: {
         mainWindow.trayHandler = trayHandler
@@ -24,93 +26,22 @@ ApplicationWindow {
         Label {
             text: qsTr("Welcome to Vibeco")
             font.pixelSize: 24
+            font.family: interBold.name
+            color: "white"
             Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 20
         }
 
-        // Add more UI components here
-
-        Button {
-            text: "Test Notification"
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-            Layout.bottomMargin: 20
-            width: 200
-            height: 50
-            font.pixelSize: 16
-            background: Rectangle {
-                color: parent.down ? "#4CAF50" : "#8BC34A"
-                radius: 5
-            }
-            contentItem: Text {
-                text: parent.text
-                font: parent.font
-                color: "white"
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: {
-                shortcutManager.testNotification()
-            }
+        // Main content area
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
         }
+    }
 
-        Button {
-            id: startRecordingButton
-            text: "Start Recording"
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-            Layout.bottomMargin: 20
-            width: 200
-            height: 50
-            font.pixelSize: 16
-            enabled: mainWindow.trayHandler !== null && !isRecording
-            background: Rectangle {
-                color: parent.enabled ? (parent.down ? "#4CAF50" : "#8BC34A") : "#CCCCCC"
-                radius: 5
-            }
-            contentItem: Text {
-                text: parent.text
-                font: parent.font
-                color: parent.enabled ? "white" : "#666666"
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: {
-                if (mainWindow.trayHandler) {
-                    mainWindow.trayHandler.startRecording()
-                }
-            }
-        }
-
-        Button {
-            id: stopRecordingButton
-            text: "Stop Recording"
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-            Layout.bottomMargin: 20
-            width: 200
-            height: 50
-            font.pixelSize: 16
-            enabled: mainWindow.trayHandler !== null && isRecording
-            background: Rectangle {
-                color: parent.enabled ? (parent.down ? "#4CAF50" : "#8BC34A") : "#CCCCCC"
-                radius: 5
-            }
-            contentItem: Text {
-                text: parent.text
-                font: parent.font
-                color: parent.enabled ? "white" : "#666666"
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: {
-                if (mainWindow.trayHandler) {
-                    mainWindow.trayHandler.stopRecording()
-                }
-            }
-        }
-
-        Label {
-            text: mainWindow.trayHandler ? (isRecording ? "Recording..." : "Not Recording") : "Initializing..."
-            font.pixelSize: 16
-            Layout.alignment: Qt.AlignHCenter
-        }
+    // Bottom control bar
+    BottomControlBar {
+        // The anchoring is handled inside the component
     }
 
     Connections {
