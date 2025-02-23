@@ -4,17 +4,18 @@
 #include <QObject>
 #include <QSystemTrayIcon>
 #include <QMenu>
-#include "transcriptionservice.h"
+#include "dictationwidget.h"
 
 class ShortcutManager;
 class AudioHandler;
+struct TranscriptionResult;
 
 class SystemTrayHandler : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit SystemTrayHandler(QObject *parent = nullptr);
+    explicit SystemTrayHandler(QObject* parent = nullptr);
     ~SystemTrayHandler();
 
     QSystemTrayIcon* trayIcon() const { return m_trayIcon; }
@@ -37,6 +38,8 @@ signals:
 private:
     void createActions();
     void createTrayIcon();
+    void showDictationWidget();
+    void hideDictationWidget();
 
     QSystemTrayIcon *m_trayIcon;
     QMenu *trayIconMenu;
@@ -46,6 +49,7 @@ private:
     QAction *autoTranscribeAction;
     ShortcutManager* m_shortcutManager;
     AudioHandler* m_audioHandler;
+    DictationWidget* m_dictationWidget;
 };
 
 #endif // SYSTEMTRAYHANDLER_H 

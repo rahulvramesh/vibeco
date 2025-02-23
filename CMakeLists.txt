@@ -50,6 +50,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/transcriptionservice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/config.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/settingsdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/dictationwidget.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/systemtrayhandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/ShortcutManager.h
 )
@@ -78,6 +79,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/transcriptionservice.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/config.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/settingsdialog.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/dictationwidget.cpp
 )
 
 set(PROJECT_HEADERS
@@ -87,6 +89,7 @@ set(PROJECT_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/transcriptionservice.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/config.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/settingsdialog.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/dictationwidget.h
 )
 
 add_executable(vibeco 

@@ -6,6 +6,7 @@
 #include "audiohandler.h"
 #include "settingsdialog.h"
 #include <QMessageBox>
+#include "dictationwidget.h"
 
 SystemTrayHandler::SystemTrayHandler(QObject* parent)
     : QObject(parent),
@@ -16,7 +17,8 @@ SystemTrayHandler::SystemTrayHandler(QObject* parent)
       stopRecordingAction(new QAction(tr("&Stop Recording"), this)),
       autoTranscribeAction(new QAction(tr("&Auto Transcribe"), this)),
       m_shortcutManager(nullptr),
-      m_audioHandler(nullptr)
+      m_audioHandler(nullptr),
+      m_dictationWidget(new DictationWidget())
 {
     createActions();
     createTrayIcon();
@@ -28,18 +30,26 @@ SystemTrayHandler::SystemTrayHandler(QObject* parent)
     m_audioHandler = new AudioHandler(this);
     m_audioHandler->initialize();
 
+    // Connect dictation widget signals
+    connect(m_dictationWidget, &DictationWidget::clicked, this, &SystemTrayHandler::startRecording);
+
     connect(m_audioHandler, &AudioHandler::transcriptionReceived,
             this, static_cast<void (SystemTrayHandler::*)(const QString&)>(&SystemTrayHandler::showTranscriptionComplete));
 
     connect(this, &SystemTrayHandler::recordingStarted, this, [this](){
         startRecordingAction->setEnabled(false);
         stopRecordingAction->setEnabled(true);
+        hideDictationWidget();
     });
 
     connect(this, &SystemTrayHandler::recordingStopped, this, [this](){
         startRecordingAction->setEnabled(true);
         stopRecordingAction->setEnabled(false);
+        showDictationWidget();
     });
+
+    // Show the dictation widget initially
+    showDictationWidget();
 }
 
 SystemTrayHandler::~SystemTrayHandler()
@@ -50,6 +60,7 @@ SystemTrayHandler::~SystemTrayHandler()
     delete m_trayIcon;
     delete trayIconMenu;
     delete m_audioHandler;
+    delete m_dictationWidget;
 }
 
 void SystemTrayHandler::createActions()
@@ -192,4 +203,18 @@ void SystemTrayHandler::showSettings()
 {
     SettingsDialog dialog;
     dialog.exec();
+}
+
+void SystemTrayHandler::showDictationWidget()
+{
+    if (m_dictationWidget) {
+        m_dictationWidget->showAtBottom();
+    }
+}
+
+void SystemTrayHandler::hideDictationWidget()
+{
+    if (m_dictationWidget) {
+        m_dictationWidget->hide();
+    }
 } 
