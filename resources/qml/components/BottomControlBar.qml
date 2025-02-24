@@ -63,9 +63,9 @@ Rectangle {
             }
 
             onClicked: {
-                if (!mainWindow.isRecording) {
+                if (!mainWindow.isRecording && mainWindow.trayHandler) {
                     mainWindow.trayHandler.startRecording()
-                } else {
+                } else if (mainWindow.isRecording && mainWindow.trayHandler) {
                     mainWindow.trayHandler.stopRecording()
                 }
             }
@@ -84,7 +84,7 @@ Rectangle {
                     text: parent.text
                     color: "white"
                     font.pixelSize: 12
-                    font.family: interRegular.name
+                    font.family: "Inter"
                 }
             }
         }
@@ -106,7 +106,7 @@ Rectangle {
                 text: mainWindow.isRecording ? qsTr("Press the stop button when finished speaking") : qsTr("Press the record button or use the system tray icon to start")
                 color: "#BBBBBB"
                 font.pixelSize: 12
-                font.family: interRegular.name
+                font.family: "Inter"
                 width: parent.width
                 elide: Text.ElideRight
             }
@@ -132,7 +132,9 @@ Rectangle {
             }
 
             onClicked: {
-                mainWindow.trayHandler.showSettings()
+                if (mainWindow.trayHandler) {
+                    mainWindow.trayHandler.showSettings()
+                }
             }
 
             ToolTip {
@@ -149,7 +151,7 @@ Rectangle {
                     text: parent.text
                     color: "white"
                     font.pixelSize: 12
-                    font.family: interRegular.name
+                    font.family: "Inter"
                 }
             }
         }

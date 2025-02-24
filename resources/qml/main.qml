@@ -18,7 +18,13 @@ ApplicationWindow {
     color: "#1A1A1A"  // Dark background
 
     Component.onCompleted: {
-        mainWindow.trayHandler = trayHandler
+        // Access trayHandler from the QML context
+        if (typeof trayHandler !== "undefined") {
+            mainWindow.trayHandler = trayHandler;
+            console.log("TrayHandler set successfully");
+        } else {
+            console.error("TrayHandler is not available in QML context");
+        }
     }
 
     // Header
@@ -54,7 +60,11 @@ ApplicationWindow {
 
             Button {
                 text: qsTr("Settings")
-                onClicked: mainWindow.trayHandler.showSettings()
+                onClicked: {
+                    if (mainWindow.trayHandler) {
+                        mainWindow.trayHandler.showSettings()
+                    }
+                }
                 background: Rectangle {
                     color: parent.pressed ? "#404040" : "#333333"
                     radius: 5
@@ -115,9 +125,9 @@ ApplicationWindow {
                 Button {
                     text: isRecording ? qsTr("Stop Recording") : qsTr("Start Recording")
                     onClicked: {
-                        if (!isRecording) {
+                        if (!isRecording && mainWindow.trayHandler) {
                             mainWindow.trayHandler.startRecording()
-                        } else {
+                        } else if (isRecording && mainWindow.trayHandler) {
                             mainWindow.trayHandler.stopRecording()
                         }
                     }
@@ -418,6 +428,12 @@ ApplicationWindow {
             mainWindow.recentTranscriptions = newList
             mainWindow.recentTranscriptionsCount = newList.length
         }
+    }
+
+    // Function to check if trayHandler is available
+    function checkTrayHandler() {
+        console.log("Checking trayHandler availability:", mainWindow.trayHandler !== null)
+        return mainWindow.trayHandler !== null
     }
 
     // Function to be called from C++ via invokeMethod

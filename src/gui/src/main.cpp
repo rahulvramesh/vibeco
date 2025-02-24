@@ -21,7 +21,8 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 
-    // Add debug output
+    // Debug logging
+    qDebug() << "Starting application...";
     qDebug() << "Current working directory:" << QDir::currentPath();
     qDebug() << "QML File exists:" << QFile::exists(":/main.qml");
     qDebug() << "Available resource files:";
@@ -30,12 +31,15 @@ int main(int argc, char *argv[])
         qDebug() << "  -" << file;
     }
 
-    // Register Style singleton
+    // Register Style singleton if needed
     qmlRegisterSingletonType(QUrl("qrc:/Style.qml"), "com.vibeco.style", 1, 0, "Style");
 
     // Create system tray handler with engine and app
     SystemTrayHandler* trayHandler = new SystemTrayHandler(&engine, &app);
+
+    // This is critical - set the tray handler as a context property BEFORE loading the QML
     engine.rootContext()->setContextProperty("trayHandler", trayHandler);
+    qDebug() << "TrayHandler set as context property";
 
     // Create and register ShortcutManager
     ShortcutManager* shortcutManager = new ShortcutManager(trayHandler, &app);
@@ -47,13 +51,20 @@ int main(int argc, char *argv[])
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url, trayHandler](QObject *obj, const QUrl &objUrl) {
         if (!obj && url == objUrl) {
+            qCritical() << "Failed to create QML object for" << objUrl;
             QCoreApplication::exit(-1);
             return;
         }
 
         if (url == objUrl) {
+            qDebug() << "Main window created, setting it in TrayHandler";
             // obj is the main window
             trayHandler->setMainWindow(obj);
+
+            // Verify the trayHandler is accessible from QML
+            QVariant result;
+            QMetaObject::invokeMethod(obj, "checkTrayHandler", Q_RETURN_ARG(QVariant, result));
+            qDebug() << "TrayHandler check result:" << result.toBool();
 
             // Connect signal for transcription reception
             QObject::connect(trayHandler, &SystemTrayHandler::transcriptionReceived,
@@ -71,7 +82,14 @@ int main(int argc, char *argv[])
         }
     }, Qt::QueuedConnection);
 
+    qDebug() << "Loading QML file:" << url.toString();
     engine.load(url);
 
+    if (engine.rootObjects().isEmpty()) {
+        qCritical() << "No root objects created - QML loading failed!";
+        return -1;
+    }
+
+    qDebug() << "QML loaded successfully, starting application";
     return app.exec();
 }
