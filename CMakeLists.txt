@@ -80,6 +80,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/config.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/settingsdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/dictationwidget.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/src/QmlDictationManager.cpp
 )
 
 set(PROJECT_HEADERS
@@ -90,6 +91,7 @@ set(PROJECT_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/config.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/settingsdialog.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/dictationwidget.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/QmlDictationManager.h
 )
 
 add_executable(vibeco 

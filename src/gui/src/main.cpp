@@ -8,14 +8,13 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include "ShortcutManager.h"
+#include "QmlDictationManager.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    
-    QQmlApplicationEngine engine;
 
-    SystemTrayHandler* trayHandler = new SystemTrayHandler(&app);
+    QQmlApplicationEngine engine;
 
     // Add debug output
     qDebug() << "Current working directory:" << QDir::currentPath();
@@ -25,9 +24,12 @@ int main(int argc, char *argv[])
     for(const QString &file : resourceDir.entryList()) {
         qDebug() << "  -" << file;
     }
-    
+
     // Register Style singleton
     qmlRegisterSingletonType(QUrl("qrc:/Style.qml"), "com.vibeco.style", 1, 0, "Style");
+
+    // Create system tray handler with engine and app
+    SystemTrayHandler* trayHandler = new SystemTrayHandler(&engine, &app);
     engine.rootContext()->setContextProperty("trayHandler", trayHandler);
 
     // Create and register ShortcutManager
@@ -40,7 +42,7 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
-    
+
     engine.load(url);
 
     return app.exec();

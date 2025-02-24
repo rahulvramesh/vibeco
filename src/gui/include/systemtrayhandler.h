@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QSystemTrayIcon>
 #include <QMenu>
-#include "dictationwidget.h"
+#include "QmlDictationManager.h"
 
 class ShortcutManager;
 class AudioHandler;
@@ -15,24 +15,26 @@ class SystemTrayHandler : public QObject
     Q_OBJECT
 
 public:
-    explicit SystemTrayHandler(QObject* parent = nullptr);
+    explicit SystemTrayHandler(QQmlApplicationEngine* engine, QObject* parent = nullptr);
     ~SystemTrayHandler();
 
     QSystemTrayIcon* trayIcon() const { return m_trayIcon; }
+    void setQmlEngine(QQmlApplicationEngine* engine);
 
-public slots:
-    void showTranscriptionComplete(const QString& text);
+    public slots:
+        void showTranscriptionComplete(const QString& text);
     void showTranscriptionComplete(const TranscriptionResult& result);
     void showSettings();
-
-private slots:
-    void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
-    void quit();
     void startRecording();
     void stopRecording();
 
-signals:
-    void recordingStarted();
+    private slots:
+        void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void quit();
+    void onDictationWidgetClicked();
+
+    signals:
+        void recordingStarted();
     void recordingStopped();
 
 private:
@@ -40,6 +42,7 @@ private:
     void createTrayIcon();
     void showDictationWidget();
     void hideDictationWidget();
+    void setupQmlDictationManager();
 
     QSystemTrayIcon *m_trayIcon;
     QMenu *trayIconMenu;
@@ -49,7 +52,8 @@ private:
     QAction *autoTranscribeAction;
     ShortcutManager* m_shortcutManager;
     AudioHandler* m_audioHandler;
-    DictationWidget* m_dictationWidget;
+    QmlDictationManager* m_dictationManager;
+    QQmlApplicationEngine* m_qmlEngine;
 };
 
-#endif // SYSTEMTRAYHANDLER_H 
+#endif // SYSTEMTRAYHANDLER_H

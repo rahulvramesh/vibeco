@@ -6,9 +6,10 @@
 #include "audiohandler.h"
 #include "settingsdialog.h"
 #include <QMessageBox>
-#include "dictationwidget.h"
+#include "QmlDictationManager.h"
+#include <QTimer>
 
-SystemTrayHandler::SystemTrayHandler(QObject* parent)
+SystemTrayHandler::SystemTrayHandler(QQmlApplicationEngine* engine, QObject* parent)
     : QObject(parent),
       m_trayIcon(new QSystemTrayIcon(this)),
       trayIconMenu(new QMenu()),
@@ -18,10 +19,12 @@ SystemTrayHandler::SystemTrayHandler(QObject* parent)
       autoTranscribeAction(new QAction(tr("&Auto Transcribe"), this)),
       m_shortcutManager(nullptr),
       m_audioHandler(nullptr),
-      m_dictationWidget(new DictationWidget())
+      m_dictationManager(nullptr),
+      m_qmlEngine(engine)
 {
     createActions();
     createTrayIcon();
+    setupQmlDictationManager();
 
     m_trayIcon->show();
 
@@ -30,22 +33,25 @@ SystemTrayHandler::SystemTrayHandler(QObject* parent)
     m_audioHandler = new AudioHandler(this);
     m_audioHandler->initialize();
 
-    // Connect dictation widget signals
-    connect(m_dictationWidget, &DictationWidget::clicked, this, &SystemTrayHandler::startRecording);
-
     connect(m_audioHandler, &AudioHandler::transcriptionReceived,
             this, static_cast<void (SystemTrayHandler::*)(const QString&)>(&SystemTrayHandler::showTranscriptionComplete));
 
     connect(this, &SystemTrayHandler::recordingStarted, this, [this](){
         startRecordingAction->setEnabled(false);
         stopRecordingAction->setEnabled(true);
-        //hideDictationWidget();
+
+        if (m_dictationManager) {
+            m_dictationManager->setRecordingState(true);
+        }
     });
 
     connect(this, &SystemTrayHandler::recordingStopped, this, [this](){
         startRecordingAction->setEnabled(true);
         stopRecordingAction->setEnabled(false);
-        //showDictationWidget();
+
+        if (m_dictationManager) {
+            m_dictationManager->setRecordingState(false);
+        }
     });
 
     // Show the dictation widget initially
@@ -60,7 +66,27 @@ SystemTrayHandler::~SystemTrayHandler()
     delete m_trayIcon;
     delete trayIconMenu;
     delete m_audioHandler;
-    delete m_dictationWidget;
+    // m_dictationManager is deleted by QObject parent-child relationship
+}
+
+void SystemTrayHandler::setupQmlDictationManager()
+{
+    if (m_qmlEngine) {
+        m_dictationManager = new QmlDictationManager(m_qmlEngine, this);
+        connect(m_dictationManager, &QmlDictationManager::dictationWidgetClicked,
+                this, &SystemTrayHandler::onDictationWidgetClicked);
+        qDebug() << "QML Dictation Manager created";
+    } else {
+        qWarning() << "Cannot create QML Dictation Manager: QML engine is null";
+    }
+}
+
+void SystemTrayHandler::setQmlEngine(QQmlApplicationEngine* engine)
+{
+    if (!m_qmlEngine && engine) {
+        m_qmlEngine = engine;
+        setupQmlDictationManager();
+    }
 }
 
 void SystemTrayHandler::createActions()
@@ -91,12 +117,12 @@ void SystemTrayHandler::createTrayIcon()
     trayIconMenu->addAction(stopRecordingAction);
     trayIconMenu->addAction(autoTranscribeAction);
     trayIconMenu->addSeparator();
-    
+
     // Add settings action
     QAction* settingsAction = new QAction(tr("Settings"), this);
     connect(settingsAction, &QAction::triggered, this, &SystemTrayHandler::showSettings);
     trayIconMenu->addAction(settingsAction);
-    
+
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
 
@@ -113,7 +139,7 @@ void SystemTrayHandler::createTrayIcon()
     m_trayIcon->setIcon(icon);
 
     // Connect activation signal
-    connect(m_trayIcon, &QSystemTrayIcon::activated, 
+    connect(m_trayIcon, &QSystemTrayIcon::activated,
             this, &SystemTrayHandler::trayIconActivated);
 }
 
@@ -178,7 +204,7 @@ void SystemTrayHandler::showTranscriptionComplete(const TranscriptionResult& res
     details += tr("Duration: %1 seconds\n").arg(result.duration);
     details += tr("Task: %1\n").arg(result.task);
     details += tr("Request ID: %1\n\n").arg(result.requestId);
-    
+
     details += tr("Segment Details:\n");
     details += tr("- Time: %1s to %2s\n")
         .arg(result.segment.start)
@@ -207,14 +233,26 @@ void SystemTrayHandler::showSettings()
 
 void SystemTrayHandler::showDictationWidget()
 {
-    if (m_dictationWidget) {
-        m_dictationWidget->showAtBottom();
+    if (m_dictationManager) {
+        m_dictationManager->showDictationWidget();
     }
 }
 
 void SystemTrayHandler::hideDictationWidget()
 {
-    if (m_dictationWidget) {
-        m_dictationWidget->hide();
+    if (m_dictationManager) {
+        m_dictationManager->hideDictationWidget();
     }
-} 
+}
+
+void SystemTrayHandler::onDictationWidgetClicked()
+{
+    qDebug() << "Dictation widget clicked";
+    if (m_audioHandler) {
+        if (m_audioHandler->isRecording()) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }
+}

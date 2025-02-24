@@ -5,5 +5,7 @@
         <file>Style.qml</file>
         <file>qtquickcontrols2.conf</file>
         <file>components/BottomControlBar.qml</file>
+        <file>components/DictationWidget.qml</file>
+        <file>DictationWindow.qml</file>
     </qresource>
 </RCC> 
