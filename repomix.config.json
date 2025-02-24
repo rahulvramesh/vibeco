@@ -15,7 +15,7 @@
   "ignore": {
     "useGitignore": true,
     "useDefaultPatterns": true,
-    "customPatterns": []
+    "customPatterns": ["external",".aider.*"]
   },
   "security": {
     "enableSecurityCheck": true

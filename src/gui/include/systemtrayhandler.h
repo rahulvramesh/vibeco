@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include <QDateTime>
 #include "QmlDictationManager.h"
 
 class ShortcutManager;
@@ -20,6 +21,7 @@ public:
 
     QSystemTrayIcon* trayIcon() const { return m_trayIcon; }
     void setQmlEngine(QQmlApplicationEngine* engine);
+    void setMainWindow(QObject* mainWindow);
 
     public slots:
         void showTranscriptionComplete(const QString& text);
@@ -27,6 +29,7 @@ public:
     void showSettings();
     void startRecording();
     void stopRecording();
+    void handleTranscriptionReceived(const QString& text);
 
     private slots:
         void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -36,6 +39,7 @@ public:
     signals:
         void recordingStarted();
     void recordingStopped();
+    void transcriptionReceived(const QString& text, double duration, const QString& language);
 
 private:
     void createActions();
@@ -54,6 +58,7 @@ private:
     AudioHandler* m_audioHandler;
     QmlDictationManager* m_dictationManager;
     QQmlApplicationEngine* m_qmlEngine;
+    QObject* m_mainWindow;  // Reference to the main QML window
 };
 
 #endif // SYSTEMTRAYHANDLER_H

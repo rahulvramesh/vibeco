@@ -12,8 +12,9 @@ AudioHandler::AudioHandler(QObject *parent)
     , m_dataSize(0)
     , m_transcriptionService(new TranscriptionService(this))
     , m_autoTranscribe(false)
+    , m_lastRecordingDuration(0.0)
 {
-    connect(m_transcriptionService, 
+    connect(m_transcriptionService,
            static_cast<void (TranscriptionService::*)(const QString&)>(&TranscriptionService::transcriptionComplete),
            this, &AudioHandler::transcriptionReceived);
     connect(m_transcriptionService, &TranscriptionService::transcriptionError,
@@ -52,14 +53,14 @@ bool AudioHandler::startRecording()
     }
 
     // Create recordings directory if it doesn't exist
-    QString recordingsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) 
+    QString recordingsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
                            + "/Vibeco/Recordings";
     QDir().mkpath(recordingsPath);
 
     // Create filename with timestamp
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
     m_currentFilePath = recordingsPath + "/recording_" + timestamp + ".wav";
-    
+
     m_outputFile.setFileName(m_currentFilePath);
     if (!m_outputFile.open(QIODevice::WriteOnly)) {
         qDebug() << "Failed to open output file:" << m_currentFilePath;
@@ -96,6 +97,10 @@ bool AudioHandler::startRecording()
         return false;
     }
 
+    // Start recording timer
+    m_recordingTimer.start();
+    m_lastRecordingDuration = 0.0;
+
     m_isRecording = true;
     emit recordingStarted();
     return true;
@@ -106,6 +111,9 @@ bool AudioHandler::stopRecording()
     if (!m_isRecording) {
         return true;
     }
+
+    // Save the recording duration
+    m_lastRecordingDuration = m_recordingTimer.elapsed() / 1000.0;
 
     PaError err = Pa_StopStream(m_stream);
     if (err != paNoError) {
@@ -141,7 +149,7 @@ int AudioHandler::recordCallback(const void *inputBuffer, void *outputBuffer,
 {
     AudioHandler* handler = static_cast<AudioHandler*>(userData);
     const float* in = static_cast<const float*>(inputBuffer);
-    
+
     if (handler && in) {
         handler->processAudioData(in, framesPerBuffer);
     }
@@ -158,7 +166,7 @@ void AudioHandler::processAudioData(const float* inputBuffer, unsigned long fram
         reinterpret_cast<const char*>(inputBuffer),
         framesPerBuffer * sizeof(float)
     );
-    
+
     if (bytesWritten > 0) {
         m_dataSize += bytesWritten;
     }
@@ -207,4 +215,4 @@ void AudioHandler::updateWavHeader()
     // Update data chunk size
     m_outputFile.seek(40);
     m_outputFile.write(reinterpret_cast<const char*>(&m_dataSize), 4);
-} 
+}

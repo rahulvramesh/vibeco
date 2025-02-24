@@ -8,6 +8,7 @@
 #include <QMessageBox>
 #include "QmlDictationManager.h"
 #include <QTimer>
+#include <QQmlProperty>
 
 SystemTrayHandler::SystemTrayHandler(QQmlApplicationEngine* engine, QObject* parent)
     : QObject(parent),
@@ -20,7 +21,8 @@ SystemTrayHandler::SystemTrayHandler(QQmlApplicationEngine* engine, QObject* par
       m_shortcutManager(nullptr),
       m_audioHandler(nullptr),
       m_dictationManager(nullptr),
-      m_qmlEngine(engine)
+      m_qmlEngine(engine),
+      m_mainWindow(nullptr)
 {
     createActions();
     createTrayIcon();
@@ -34,7 +36,7 @@ SystemTrayHandler::SystemTrayHandler(QQmlApplicationEngine* engine, QObject* par
     m_audioHandler->initialize();
 
     connect(m_audioHandler, &AudioHandler::transcriptionReceived,
-            this, static_cast<void (SystemTrayHandler::*)(const QString&)>(&SystemTrayHandler::showTranscriptionComplete));
+            this, &SystemTrayHandler::handleTranscriptionReceived);
 
     connect(this, &SystemTrayHandler::recordingStarted, this, [this](){
         startRecordingAction->setEnabled(false);
@@ -67,6 +69,11 @@ SystemTrayHandler::~SystemTrayHandler()
     delete trayIconMenu;
     delete m_audioHandler;
     // m_dictationManager is deleted by QObject parent-child relationship
+}
+
+void SystemTrayHandler::setMainWindow(QObject* mainWindow)
+{
+    m_mainWindow = mainWindow;
 }
 
 void SystemTrayHandler::setupQmlDictationManager()
@@ -147,56 +154,77 @@ void SystemTrayHandler::trayIconActivated(QSystemTrayIcon::ActivationReason reas
 {
     switch (reason) {
         case QSystemTrayIcon::Trigger:
-            // Handle single click
+            // Handle single click - toggle main window visibility
+            if (m_mainWindow) {
+                bool isVisible = QQmlProperty::read(m_mainWindow, "visible").toBool();
+                QQmlProperty::write(m_mainWindow, "visible", !isVisible);
+            }
             break;
         case QSystemTrayIcon::DoubleClick:
-            // Handle double click
+            // Handle double click - start/stop recording
+            if (m_audioHandler) {
+                if (m_audioHandler->isRecording()) {
+                    stopRecording();
+                } else {
+                    startRecording();
+                }
+            }
             break;
         default:
             break;
     }
 }
 
-void SystemTrayHandler::startRecording()
+void SystemTrayHandler::handleTranscriptionReceived(const QString& text)
 {
-    if (m_audioHandler && m_audioHandler->startRecording()) {
-        startRecordingAction->setEnabled(false);
-        stopRecordingAction->setEnabled(true);
-        m_trayIcon->showMessage(tr("Recording"), tr("Audio recording started"));
-        emit recordingStarted();
-    } else {
-        m_trayIcon->showMessage(tr("Error"), tr("Failed to start recording"),
-                                  QSystemTrayIcon::Critical);
-    }
-}
+    // Show notification
+    m_trayIcon->showMessage(tr("Transcription Complete"), text);
 
-void SystemTrayHandler::stopRecording()
-{
-    if (m_audioHandler && m_audioHandler->stopRecording()) {
-        startRecordingAction->setEnabled(true);
-        stopRecordingAction->setEnabled(false);
-        QString message = tr("Audio recording stopped\nSaved to: %1")
-                         .arg(m_audioHandler->getLastRecordingPath());
-        m_trayIcon->showMessage(tr("Recording"), message);
-        emit recordingStopped();
-    } else {
-        m_trayIcon->showMessage(tr("Error"), tr("Failed to stop recording"),
-                                  QSystemTrayIcon::Critical);
-    }
-}
+    // Add to main window history if available
+    if (m_mainWindow) {
+        // Create a QVariantMap for the transcription data
+        QVariantMap transcription;
+        transcription["text"] = text;
+        transcription["timestamp"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        transcription["duration"] = 0.0; // This would need to be tracked in AudioHandler
+        transcription["language"] = "en"; // This would come from the actual transcription
 
-void SystemTrayHandler::quit()
-{
-    QApplication::quit();
+        // Use QMetaObject::invokeMethod to call the QML method
+        QMetaObject::invokeMethod(m_mainWindow, "onTranscriptionReceived",
+                                  Q_ARG(QVariant, QVariant::fromValue(transcription)));
+    }
+
+    // Also emit the signal for any connected slots
+    emit transcriptionReceived(text, 0.0, "en");
 }
 
 void SystemTrayHandler::showTranscriptionComplete(const QString& text)
 {
     m_trayIcon->showMessage(tr("Transcription Complete"), text);
+
+    // Also add to main window history
+    handleTranscriptionReceived(text);
 }
 
 void SystemTrayHandler::showTranscriptionComplete(const TranscriptionResult& result)
 {
+    // Add to main window history if available
+    if (m_mainWindow) {
+        // Create a QVariantMap for the transcription data
+        QVariantMap transcription;
+        transcription["text"] = result.text;
+        transcription["timestamp"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+        transcription["duration"] = result.duration;
+        transcription["language"] = result.language;
+
+        // Use QMetaObject::invokeMethod to call the QML method
+        QMetaObject::invokeMethod(m_mainWindow, "onTranscriptionReceived",
+                                  Q_ARG(QVariant, QVariant::fromValue(transcription)));
+    }
+
+    // Also emit the signal for any connected slots
+    emit transcriptionReceived(result.text, result.duration, result.language);
+
     // Create a detailed message
     QString details = tr("Transcription Details:\n\n");
     details += tr("Text: %1\n\n").arg(result.text);
@@ -223,6 +251,39 @@ void SystemTrayHandler::showTranscriptionComplete(const TranscriptionResult& res
 
     // Show detailed results in a message box
     QMessageBox::information(nullptr, tr("Transcription Details"), details);
+}
+
+void SystemTrayHandler::startRecording()
+{
+    if (m_audioHandler && m_audioHandler->startRecording()) {
+        startRecordingAction->setEnabled(false);
+        stopRecordingAction->setEnabled(true);
+        m_trayIcon->showMessage(tr("Recording"), tr("Audio recording started"));
+        emit recordingStarted();
+    } else {
+        m_trayIcon->showMessage(tr("Error"), tr("Failed to start recording"),
+                                QSystemTrayIcon::Critical);
+    }
+}
+
+void SystemTrayHandler::stopRecording()
+{
+    if (m_audioHandler && m_audioHandler->stopRecording()) {
+        startRecordingAction->setEnabled(true);
+        stopRecordingAction->setEnabled(false);
+        QString message = tr("Audio recording stopped\nSaved to: %1")
+                          .arg(m_audioHandler->getLastRecordingPath());
+        m_trayIcon->showMessage(tr("Recording"), message);
+        emit recordingStopped();
+    } else {
+        m_trayIcon->showMessage(tr("Error"), tr("Failed to stop recording"),
+                                QSystemTrayIcon::Critical);
+    }
+}
+
+void SystemTrayHandler::quit()
+{
+    QApplication::quit();
 }
 
 void SystemTrayHandler::showSettings()

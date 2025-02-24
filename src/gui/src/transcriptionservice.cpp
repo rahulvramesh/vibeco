@@ -1,4 +1,5 @@
 #include "transcriptionservice.h"
+#include "audiohandler.h"
 #include "config.h"
 #include <QFile>
 #include <QFileInfo>
@@ -57,6 +58,9 @@ void TranscriptionService::transcribeAudioFile(const QString& filePath)
         return;
     }
 
+    // Store the file path for reference later
+    m_currentFilePath = filePath;
+
     QFile* file = new QFile(filePath);
     if (!file->open(QIODevice::ReadOnly)) {
         emit transcriptionError("Could not open audio file");
@@ -70,8 +74,8 @@ void TranscriptionService::transcribeAudioFile(const QString& filePath)
     // Add file part
     QHttpPart filePart;
     filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("audio/wav"));
-    filePart.setHeader(QNetworkRequest::ContentDispositionHeader, 
-                      QVariant("form-data; name=\"file\"; filename=\"" + 
+    filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                      QVariant("form-data; name=\"file\"; filename=\"" +
                       QFileInfo(filePath).fileName() + "\""));
     filePart.setBodyDevice(file);
     file->setParent(multiPart); // Delete file with multiPart
@@ -79,7 +83,7 @@ void TranscriptionService::transcribeAudioFile(const QString& filePath)
 
     // Add model part
     QHttpPart modelPart;
-    modelPart.setHeader(QNetworkRequest::ContentDispositionHeader, 
+    modelPart.setHeader(QNetworkRequest::ContentDispositionHeader,
                        QVariant("form-data; name=\"model\""));
     modelPart.setBody(currentModel().toUtf8());
     multiPart->append(modelPart);
@@ -106,10 +110,10 @@ void TranscriptionService::transcribeAudioFile(const QString& filePath)
     // Connect signals for progress reporting
     connect(reply, &QNetworkReply::uploadProgress,
             this, &TranscriptionService::handleUploadProgress);
-            
+
     connect(reply, &QNetworkReply::finished,
             this, [this, reply]() { handleTranscriptionResponse(reply); });
-            
+
     emit processingStarted();
 }
 
@@ -118,15 +122,14 @@ void TranscriptionService::handleUploadProgress(qint64 bytesSent, qint64 bytesTo
     emit uploadProgress(bytesSent, bytesTotal);
 }
 
-void TranscriptionService::handleTranscriptionResponse(QNetworkReply* reply)
-{
+void TranscriptionService::handleTranscriptionResponse(QNetworkReply* reply) {
     reply->deleteLater();
 
     // Log response details
     qDebug() << "\n=== Transcription API Response ===";
     qDebug() << "Status Code:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     qDebug() << "Content Type:" << reply->header(QNetworkRequest::ContentTypeHeader).toString();
-    
+
     // Log response headers
     qDebug() << "\nResponse Headers:";
     const QList<QByteArray>& headerList = reply->rawHeaderList();
@@ -138,11 +141,11 @@ void TranscriptionService::handleTranscriptionResponse(QNetworkReply* reply)
         QString errorString = reply->errorString();
         qDebug() << "\nNetwork Error:" << errorString;
         qDebug() << "Error Code:" << reply->error();
-        
+
         // Try to read error response body
         QByteArray errorData = reply->readAll();
         qDebug() << "Error Response Body:" << errorData;
-        
+
         emit transcriptionError(errorString);
         emit processingFinished();
         return;
@@ -153,7 +156,7 @@ void TranscriptionService::handleTranscriptionResponse(QNetworkReply* reply)
 
     QJsonDocument doc = QJsonDocument::fromJson(data);
     qDebug() << "\nParsed JSON:" << doc.toJson(QJsonDocument::Indented);
-    
+
     if (!doc.isObject()) {
         qDebug() << "Error: Response is not a valid JSON object";
         emit transcriptionError("Invalid response format");
@@ -173,9 +176,22 @@ void TranscriptionService::handleTranscriptionResponse(QNetworkReply* reply)
     TranscriptionResult result;
     result.text = obj["text"].toString();
     result.language = obj["language"].toString();
-    result.duration = obj["duration"].toDouble();
+
+    // Use API-provided duration or estimate from audio file
+    if (obj.contains("duration")) {
+        result.duration = obj["duration"].toDouble();
+    } else {
+        // Get duration from AudioHandler if possible
+        AudioHandler* audioHandler = qobject_cast<AudioHandler*>(parent());
+        if (audioHandler) {
+            result.duration = audioHandler->getLastRecordingDuration();
+        } else {
+            result.duration = 0.0;
+        }
+    }
+
     result.task = obj["task"].toString();
-    
+
     // Get request ID from x_groq object
     if (obj.contains("x_groq")) {
         QJsonObject groqObj = obj["x_groq"].toObject();
@@ -199,7 +215,7 @@ void TranscriptionService::handleTranscriptionResponse(QNetworkReply* reply)
     // Emit both the simple text and detailed result
     emit transcriptionComplete(result.text);
     emit transcriptionComplete(result);
-    
+
     qDebug() << "=== End of Response ===\n";
     emit processingFinished();
-} 
+}

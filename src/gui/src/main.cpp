@@ -14,6 +14,11 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    // Set application information
+    app.setApplicationName("Vibeco");
+    app.setOrganizationName("Vibeco");
+    app.setApplicationVersion("0.1.0");
+
     QQmlApplicationEngine engine;
 
     // Add debug output
@@ -37,10 +42,33 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("shortcutManager", shortcutManager);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
+
+    // Connect to objectCreated signal to get a reference to the main window
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
+                     &app, [url, trayHandler](QObject *obj, const QUrl &objUrl) {
+        if (!obj && url == objUrl) {
             QCoreApplication::exit(-1);
+            return;
+        }
+
+        if (url == objUrl) {
+            // obj is the main window
+            trayHandler->setMainWindow(obj);
+
+            // Connect signal for transcription reception
+            QObject::connect(trayHandler, &SystemTrayHandler::transcriptionReceived,
+                             obj, [obj](const QString& text, double duration, const QString& language) {
+                // Call the QML method to add a transcription
+                QVariantMap transcription;
+                transcription["text"] = text;
+                transcription["timestamp"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+                transcription["duration"] = duration;
+                transcription["language"] = language;
+
+                QMetaObject::invokeMethod(obj, "onTranscriptionReceived",
+                                          Q_ARG(QVariant, QVariant::fromValue(transcription)));
+            });
+        }
     }, Qt::QueuedConnection);
 
     engine.load(url);

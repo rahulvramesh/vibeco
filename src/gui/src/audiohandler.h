@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QFile>
 #include <QDateTime>
+#include <QElapsedTimer>
 #include "transcriptionservice.h"
 
 class AudioHandler : public QObject
@@ -22,9 +23,10 @@ public:
     QString getLastRecordingPath() const { return m_currentFilePath; }
     void setAutoTranscribe(bool enabled) { m_autoTranscribe = enabled; }
     bool autoTranscribe() const { return m_autoTranscribe; }
+    double getLastRecordingDuration() const { return m_lastRecordingDuration; }
 
-signals:
-    void recordingStarted();
+    signals:
+        void recordingStarted();
     void recordingStopped();
     void audioDataReady(const QByteArray& data);
     void transcriptionReceived(const QString& text);
@@ -43,7 +45,7 @@ private:
     PaStream *m_stream;
     bool m_isRecording;
     bool m_isInitialized;
-    
+
     QFile m_outputFile;
     QString m_currentFilePath;
     qint64 m_dataSize;
@@ -52,6 +54,10 @@ private:
     const int m_bitsPerSample = 32;
     TranscriptionService* m_transcriptionService;
     bool m_autoTranscribe;
+
+    // Recording duration tracking
+    QElapsedTimer m_recordingTimer;
+    double m_lastRecordingDuration;
 };
 
-#endif // AUDIOHANDLER_H 
+#endif // AUDIOHANDLER_H
