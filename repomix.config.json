@@ -3,10 +3,10 @@
     "filePath": "repomix-output.txt",
     "style": "plain",
     "parsableStyle": false,
-    "fileSummary": true,
+    "fileSummary": false,
     "directoryStructure": true,
-    "removeComments": false,
-    "removeEmptyLines": false,
+    "removeComments": true,
+    "removeEmptyLines": true,
     "topFilesLength": 5,
     "showLineNumbers": false,
     "copyToClipboard": false
@@ -15,10 +15,10 @@
   "ignore": {
     "useGitignore": true,
     "useDefaultPatterns": true,
-    "customPatterns": ["external",".aider.*"]
+    "customPatterns": ["external", ".aider.*", ".zed"]
   },
   "security": {
-    "enableSecurityCheck": true
+    "enableSecurityCheck": false
   },
   "tokenCount": {
     "encoding": "o200k_base"

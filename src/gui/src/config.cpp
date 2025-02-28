@@ -25,7 +25,7 @@ Config::Config()
 QString Config::getApiKey() const {
     QString encryptedKey = m_settings.value(KEY_API_KEY).toString();
     qDebug() << "Getting API key. Encrypted key exists:" << !encryptedKey.isEmpty();
-    
+
     if (encryptedKey.isEmpty()) {
         qDebug() << "No API key found in settings";
         return QString();
@@ -35,7 +35,7 @@ QString Config::getApiKey() const {
     QByteArray key = QByteArray::fromBase64(encryptedKey.toLatin1());
     QByteArray machineId = QSysInfo::machineUniqueId();
     QByteArray result;
-    
+
     for (int i = 0; i < key.size(); ++i) {
         result.append(key.at(i) ^ machineId.at(i % machineId.size()));
     }
@@ -47,7 +47,7 @@ QString Config::getApiKey() const {
 
 bool Config::setApiKey(const QString& key) {
     qDebug() << "Setting API key. Key length:" << key.length();
-    
+
     if (key.isEmpty()) {
         qDebug() << "Removing API key from settings";
         m_settings.remove(KEY_API_KEY);
@@ -58,7 +58,7 @@ bool Config::setApiKey(const QString& key) {
     QByteArray machineId = QSysInfo::machineUniqueId();
     QByteArray rawKey = key.toUtf8();
     QByteArray result;
-    
+
     for (int i = 0; i < rawKey.size(); ++i) {
         result.append(rawKey.at(i) ^ machineId.at(i % machineId.size()));
     }
@@ -66,7 +66,7 @@ bool Config::setApiKey(const QString& key) {
     QString encryptedKey = QString::fromLatin1(result.toBase64());
     m_settings.setValue(KEY_API_KEY, encryptedKey);
     m_settings.sync(); // Force write to disk
-    
+
     bool success = m_settings.status() == QSettings::NoError;
     qDebug() << "API key saved:" << success << "Settings file:" << m_settings.fileName();
     return success;
@@ -91,4 +91,4 @@ bool Config::setModel(const QString& model) {
 
 QString Config::getConfigPath() {
     return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-} 
+}

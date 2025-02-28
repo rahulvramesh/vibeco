@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.30)
 project(vibeco VERSION 0.1.0)
 
+# Support Files
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -20,7 +24,7 @@ include_directories(
 # Add the cmake module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-find_package(Qt6 COMPONENTS 
+find_package(Qt6 COMPONENTS
     Core
     Quick
     Widgets
@@ -94,7 +98,7 @@ set(PROJECT_HEADERS
         ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/include/QmlDictationManager.h
 )
 
-add_executable(vibeco 
+add_executable(vibeco
     ${PROJECT_SOURCES}
     ${PROJECT_HEADERS}
     ${PROJECT_RESOURCES}

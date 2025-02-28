@@ -5,7 +5,7 @@ import QtQuick.Window
 
 Rectangle {
     id: root
-    width: 100
+    width: 120
     height: isHovered || isRecording ? 35 : 5
     radius: 10
     color: "#000000"
@@ -18,7 +18,7 @@ Rectangle {
     property bool isHovered: false
 
     // Signals
-    signal clicked()
+    signal clicked
 
     // Animation properties
     Behavior on height {
@@ -51,7 +51,9 @@ Rectangle {
         opacity: root.height > 15 ? 1.0 : 0.0
 
         Behavior on opacity {
-            NumberAnimation { duration: 100 }
+            NumberAnimation {
+                duration: 100
+            }
         }
     }
 
@@ -61,15 +63,15 @@ Rectangle {
         hoverEnabled: true
 
         onEntered: {
-            isHovered = true
+            isHovered = true;
         }
 
         onExited: {
-            isHovered = false
+            isHovered = false;
         }
 
         onClicked: {
-            root.clicked()
+            root.clicked();
         }
     }
 }

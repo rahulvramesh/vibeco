@@ -12,7 +12,7 @@ ApplicationWindow {
     property var recentTranscriptions: []
 
     visible: true
-    width: 800
+    width: 900
     height: 600
     title: qsTr("Vibeco - Voice Assistant")
     color: "#1A1A1A"  // Dark background
